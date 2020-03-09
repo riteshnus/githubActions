@@ -1,0 +1,38 @@
+html {
+  font-size: 14px;
+  background-color: #333;
+  height: 100%;
+}
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.header {
+  max-width: 700px;
+}
+
+/* Links */
+a,
+a:focus,
+a:hover {
+  color: #fff;
+}
+
+/* Custom default button */
+.btn-secondary,
+.btn-secondary:hover,
+.btn-secondary:focus {
+  color: #fff;
+  text-shadow: none; /* Prevent inheritance from `body` */
+  background-color: rgb(114, 240, 12);
+  border: .05rem solid #fff;
+}
+
+.form-deployment {
+  width: 100%;
+  max-width: 420px;
+  padding: 15px;
+  margin: auto;
+}

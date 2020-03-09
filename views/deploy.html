@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+    crossorigin="anonymous">
+  <link rel="stylesheet" href="/stylesheets/style.css">
+
+  <script>
+    function getDetail() {
+        console.log(document.cookie)
+        console.log(localStorage.getItem('token'))
+        var token =  document.cookie.split('=')[1];
+        document.getElementById("posttoken").value = token;
+      }
+  </script>
+  <title>iLex Deployments</title>
+</head>
+
+<body onload="getDetail()">
+
+  <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+    <h5 class="my-0 mr-md-auto font-weight-normal">PALO IT iLex</h5>
+  </div>
+<form class="form-deployment">
+  <div class="mb-3">
+    <label for="repo">Repo to Deploy</label>
+    <select class="custom-select d-block w-100" id="postrepo">
+      <option value="ilex-fe">iLex Frontend</option>
+      <option value="trade-services">iLex Trade Service</option>
+      <option value="analytics-service">iLex Analytics Service</option>
+    </select>
+  </div>
+
+  <div class="mb-3">
+    <label for="token">Access Token</label>
+    <input type="text" class="form-control" id="posttoken" placeholder="Enter Github Access Token" readonly>
+  </div>
+
+  <div class="mb-3">
+    <label for="env">Environment</label>
+    <select class="custom-select d-block w-100" id="postenv">
+        <option value="deploy sit">SIT</option>
+        <option value="deploy uat">UAT</option>
+    </select>
+  </div>
+
+  <button class="btn btn-lg mt-5 mb-5 btn-primary btn-block" type="submit">Deploy</button>
+</form>
+
+</body>
+
+</html>
