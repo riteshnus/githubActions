@@ -12,9 +12,9 @@ var loginRouter = require('./routes/login');
 
 var accessToken = '';
 passport.use(new GitHubStrategy({
-    clientID: 'df43d5c37b3c1560c468',
-    clientSecret: '3aa11e2e6b05d35358c2e7059b7b5e8d20a8efd1',
-    callbackURL: "http://13.229.56.203/auth/github/callback"
+    clientID: 'facb2d696c68728e154b',
+    clientSecret: 'bffe4c4fc4febb93ad0d95b4c2782fc532604e12',
+    callbackURL: "http://bef8f483.ngrok.io/auth/github/callback"
   },
   function(accessToken, refreshToken, profile, done) {
       console.log(profile)
@@ -50,12 +50,17 @@ app.use(passport.session());
 app.get('/', function(req, res) {
   res.sendFile('auth.html', { root : path.join(__dirname, 'views')});
 })
+app.get('/sit', function (req, res) {
+  res.sendFile('sit.html', { root: path.join(__dirname, 'views') });
+})
+app.get('/uat', function (req, res) {
+  res.sendFile('uat.html', { root: path.join(__dirname, 'views') });
+})
 app.use('/error', function(req, res) {
   res.sendFile('error.html', { root : path.join(__dirname, 'views')});
 })
-app.use('/deploy', function(req, res) {
-  console.log('print res', res)
-  res.sendFile('deploy.html', { root : path.join(__dirname, 'views'), data : 'abc'});
+app.use("/dashboard", function(req, res) {
+  res.sendFile("dashboard.html", { root: path.join(__dirname, "views")});
 });
 
 // Authentication
@@ -67,7 +72,7 @@ app.get('/auth/github/callback',
   function(req, res) {
     console.log('got token: ', req.user.accessToken)
     res.cookie('token', req.user.accessToken , { expires: new Date(Date.now() + 900000), httpOnly: false })
-    res.redirect('/deploy');
+    res.redirect('/dashboard');
   }
 );
 

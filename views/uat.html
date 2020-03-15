@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+		integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+	<link href="//unpkg.com/frappe-datatable/dist/frappe-datatable.min.css" rel="stylesheet" />
+	<link rel="stylesheet" href="/stylesheets/style.css">
+	<!-- Custom styles for this template-->
+	<link href="/stylesheets/sb-admin-2.css" rel="stylesheet">
+
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+		integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous">
+	</script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"
+		integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous">
+	</script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
+		integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous">
+	</script>
+
+	<script src="//unpkg.com/sortablejs@1.7.0/Sortable.min.js"></script>
+	<script src="//unpkg.com/frappe-datatable/dist/frappe-datatable.min.js"></script>
+
+	<title>iLex Deployments</title>
+</head>
+
+<body>
+	<div id="wrapper">
+		<ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+			<li class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+				<div class="sidebar-brand-text mx-3">iLex Devops</div>
+			</li>
+
+			<hr class="sidebar-divider my-0">
+
+			<li class="nav-item active">
+				<a class="nav-link" href="/dashboard">
+					<i class="fas fa-fw fa-tachometer-alt"></i>
+					<span>Dashboard</span></a>
+			</li>
+
+			<hr class="sidebar-divider">
+
+			<li class="nav-item">
+				<a class="nav-link" href="/sit">
+					<i class="fas fa-fw fa-chart-area"></i>
+					<span>SIT</span></a>
+			</li>
+
+			<li class="nav-item">
+				<a class="nav-link" href="/uat">
+					<i class="fas fa-fw fa-table"></i>
+					<span>UAT</span></a>
+			</li>
+
+			<hr class="sidebar-divider d-none d-md-block">
+
+		</ul>
+
+
+		<div id="content-wrapper" class="d-flex flex-column">
+			<div id="content">
+				<div class="container-fluid m-5 w-50">
+					<h1 class="h3 mb-2 text-gray-800">UAT Deployment</h1>
+
+					<form class="form-horizontal mt-5" role="form">
+						<div class="mb-3">
+							<label for="repo">Repo to Deploy</label>
+							<select class="custom-select d-block w-100" id="postrepo" onchange="repoChange()">
+								<option value="ilex-fe">iLex Frontend</option>
+								<option value="trade-services">iLex Trade Service</option>
+								<option value="analytics-service">iLex Analytics Service</option>
+							</select>
+						</div>
+
+						<div class="mb-3">
+							<label for="token">Access Token</label>
+							<input type="text" class="form-control" id="posttoken" placeholder="Enter Github Access Token" readonly>
+						</div>
+
+						<div class="mb-3">
+							<label for="env">Environment</label>
+							<select class="custom-select d-block w-100" id="postenv">
+								<option value="deploy uat">UAT</option>
+							</select>
+						</div>
+
+						<div id="datatable" class="mt-5"></div>
+
+						<button class="btn btn-lg mt-5 mb-5 btn-dark btn-block" id="repobtn" type="button"
+							onclick="fetchRuns()">Select
+							Repo</button>
+
+						<button class="btn d-none btn-lg mt-5 mb-5 btn-dark btn-block" id="deploybtn" type="button"
+							onclick="deploy()">Deploy</button>
+					</form>
+
+					<div class="toast">
+						<div class="toast-body bg-danger text-gray-100">
+							Something went wrong
+						</div>
+					</div>
+
+					<div class="modal fade" id="warning-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+						aria-hidden="true">
+						<div class="modal-dialog" role="document">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h5 class="font-weight-bolder modal-title text-warning" id="exampleModalLabel">Warning</h5>
+									<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+										<span aria-hidden="true">&times;</span>
+									</button>
+								</div>
+								<div class="modal-body">
+									More than one is selected
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		let rowSelected = [];
+
+		function fetchRuns() {
+			const service = document.getElementById('postrepo').value;
+			const pat = 'b310e7cb9f04fd719efe2eb52871d256c6567eb0';
+			console.log(service, pat)
+			const urls = [
+				`https://api.github.com/repos/iLex-Innovation-Lab/${service}/actions/workflows/cd-sit-deploy-${service}.yml/runs`,
+				`https://api.github.com/repos/iLex-Innovation-Lab/${service}/actions/workflows/cd-uat-deploy-${service}.yml/runs`
+			]
+			console.log(urls)
+
+			Promise.all(urls.map(url => fetch(url, {
+				headers: {
+					'Authorization': `token ${pat}`
+				}
+			}).then(response => response.json()))).then(([sitres, uatres]) => {
+				console.log(sitres)
+				console.log(uatres)
+				const undeployedlist = findList(sitres.workflow_runs, uatres.workflow_runs)
+				console.log(undeployedlist)
+				const tableData = undeployedlist.map(ele => {
+					return [ele.head_sha, ele.conclusion, `${new Date(ele.created_at).toLocaleString()}`]
+				})
+				console.log(tableData)
+				const datatable = new DataTable('#datatable', {
+					columns: [{
+						name: 'Commit ID',
+						id: 'commit_id',
+						editable: false,
+						resizable: false,
+						sortable: false,
+						focusable: false,
+						dropdown: false,
+					}, {
+						name: 'Status',
+						id: 'status',
+						editable: false,
+						resizable: false,
+						sortable: false,
+						focusable: false,
+						dropdown: false,
+					}, {
+						name: 'Date deployed',
+						id: 'date',
+						editable: false,
+						resizable: false,
+						sortable: false,
+						focusable: false,
+						dropdown: false,
+					}],
+					data: tableData,
+					serialNoColumn: false,
+					checkboxColumn: true,
+					checkedRowStatus: false,
+					layout: 'ratio',
+					events: {
+						onCheckRow(row) {
+							if (rowSelected.filter(e => e.rowIndex == row.meta.rowIndex).length > 0) {
+								rowSelected = rowSelected.filter(e => e.rowIndex != row.meta.rowIndex)
+							} else {
+								rowSelected.push(row[1]);
+							}
+							console.log(rowSelected)
+						}
+					}
+				});
+				datatable.style.setStyle(`.dt-cell__content--header-0`, {
+					visibility: 'hidden',
+					'margin-right': '3px'
+				});
+				datatable.style.setStyle(`.dt-cell__content--col-0`, {
+					width: '35px'
+				})
+				document.getElementById('deploybtn').classList.add('d-block');
+				document.getElementById('repobtn').classList.add('d-none');
+			}).catch(err => {
+				console.log('something went wrong')
+				const datatable = new DataTable('#datatable', {
+					columns: ['Commit ID', 'Status', 'Date deployed'],
+					data: [],
+					serialNoColumn: false,
+					checkboxColumn: true,
+					checkedRowStatus: false,
+					layout: 'ratio',
+				})
+				datatable.style.setStyle(`.dt-cell__content--header-0`, {
+					visibility: 'hidden',
+					'margin-right': '3px'
+				});
+				datatable.style.setStyle(`.dt-cell__content--col-0`, {
+					width: '35px'
+				})
+				datatable.style.setStyle(`.dt-scrollable`, {
+					height: '5vw'
+				})
+				$('.toast').toast({
+					animation: true,
+					delay: 2000
+				});
+				$('.toast').toast('show');
+			})
+		}
+
+		const findList = (sitres, uatres) => {
+			try {
+				let sitArr = sortByDate(sitres)
+				let uatArr = sortByDate(uatres)
+				console.log({
+					sitArr,
+					uatArr
+				})
+				const filterArray = uatArr.filter(e => e.status == 'completed' && e.conclusion == 'success')
+				if (filterArray.length > 0) {
+					const uatDeployedId = filterArray[0].head_sha;
+					return sitArr.slice(0, temp1.findIndex(e => e.head_sha == uatDeployedId))
+				} else {
+					return sitArr
+				}
+			} catch (error) {
+				console.log(error)
+				return new Error('something went wrong')
+			}
+		}
+
+		const sortByDate = dateArray => {
+			return dateArray.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+		}
+
+		function deploy() {
+			if (rowSelected.length > 1) {
+				// alert('more than one selected')
+				$('#warning-modal').modal('show')
+				return;
+			} else {
+				console.log(rowSelected[0].content);
+				$('.toast-success').toast('show');
+			}
+			// console.log('deplpying in progress', document.getElementById('posttoken').value)
+			// var url = `https://api.github.com/repos/iLex-Innovation-Lab/${document.getElementById('postrepo').value}/dispatches`
+			// fetch(url, {
+			// method: 'POST',
+			// headers: {
+			// 'Authorization': `token ${document.getElementById('posttoken').value}`,
+			// 'Accept': 'application/vnd.github.everest-preview+json',
+			// },
+			// body: JSON.stringify({
+			// event_type: `deploy uat`
+			// })
+			// }).then((response) => {
+			// return response.json();
+			// }).then((data) => {
+			// console.log(data);
+			// document.getElementById('print').innerHTML = data.message
+			// });
+		}
+
+		function repoChange() {
+			if (document.getElementById('deploybtn').classList.contains('d-block')) {
+				document.getElementById('deploybtn').classList.remove('d-block');
+			}
+
+			if (document.getElementById('repobtn').classList.contains('d-none')) {
+				document.getElementById('repobtn').classList.remove('d-none');
+			}
+		}
+	</script>
+</body>
+
+</html>
