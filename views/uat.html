@@ -66,44 +66,46 @@
 
 		<div id="content-wrapper" class="d-flex flex-column">
 			<div id="content">
-				<div class="container-fluid m-5 w-50">
+				<div class="container-fluid m-5">
 					<h1 class="h3 mb-2 text-gray-800">UAT Deployment</h1>
 
 					<form class="form-horizontal mt-5" role="form">
-						<div class="mb-3">
-							<label for="repo">Repo to Deploy</label>
-							<select class="custom-select d-block w-100" id="postrepo" onchange="repoChange()">
-								<option value="ilex-fe">iLex Frontend</option>
-								<option value="trade-services">iLex Trade Service</option>
-								<option value="analytics-service">iLex Analytics Service</option>
-							</select>
+						<div class="w-50">
+							<div class="mb-3">
+								<label for="repo">Repo to Deploy</label>
+								<select class="custom-select d-block w-100" id="postrepo" onchange="repoChange()">
+									<option value="ilex-fe">iLex Frontend</option>
+									<option value="trade-services">iLex Trade Service</option>
+									<option value="analytics-service">iLex Analytics Service</option>
+								</select>
+							</div>
+
+							<div class="mb-3">
+								<label for="token">Access Token</label>
+								<input type="text" class="form-control" id="posttoken" placeholder="Enter Github Access Token">
+							</div>
+
+							<div class="mb-3">
+								<label for="env">Environment</label>
+								<select class="custom-select d-block w-100" id="postenv">
+									<option value="deploy uat">UAT</option>
+								</select>
+							</div>
 						</div>
 
-						<div class="mb-3">
-							<label for="token">Access Token</label>
-							<input type="text" class="form-control" id="posttoken" placeholder="Enter Github Access Token" readonly>
-						</div>
 
-						<div class="mb-3">
-							<label for="env">Environment</label>
-							<select class="custom-select d-block w-100" id="postenv">
-								<option value="deploy uat">UAT</option>
-							</select>
-						</div>
+						<div id="datatable" class="mt-5 w-100"></div>
 
-						<div id="datatable" class="mt-5"></div>
+						<button class="btn btn-lg mt-5 mb-5 w-50 btn-dark btn-block" id="repobtn" type="button"
+							onclick="fetchRuns()">Select Commit ID</button>
 
-						<button class="btn btn-lg mt-5 mb-5 btn-dark btn-block" id="repobtn" type="button"
-							onclick="fetchRuns()">Select
-							Repo</button>
-
-						<button class="btn d-none btn-lg mt-5 mb-5 btn-dark btn-block" id="deploybtn" type="button"
+						<button class="btn d-none btn-lg mt-5 w-50 mb-5 btn-dark btn-block" id="deploybtn" type="button"
 							onclick="deploy()">Deploy</button>
 					</form>
 
 					<div class="toast">
 						<div class="toast-body bg-danger text-gray-100">
-							Something went wrong
+							No more commit found, deploy in SIT first.
 						</div>
 					</div>
 
@@ -137,7 +139,7 @@
 
 		function fetchRuns() {
 			const service = document.getElementById('postrepo').value;
-			const pat = 'b310e7cb9f04fd719efe2eb52871d256c6567eb0';
+			const pat = '';
 			console.log(service, pat)
 			const urls = [
 				`https://api.github.com/repos/iLex-Innovation-Lab/${service}/actions/workflows/cd-sit-deploy-${service}.yml/runs`,
@@ -155,7 +157,9 @@
 				const undeployedlist = findList(sitres.workflow_runs, uatres.workflow_runs)
 				console.log(undeployedlist)
 				const tableData = undeployedlist.map(ele => {
-					return [ele.head_sha, ele.conclusion, `${new Date(ele.created_at).toLocaleString()}`]
+					return [ele.head_sha.substring(0, 8), ele.conclusion, `${new Date(ele.created_at).toLocaleString()}`,
+						ele.head_commit.message
+					]
 				})
 				console.log(tableData)
 				const datatable = new DataTable('#datatable', {
@@ -183,12 +187,20 @@
 						sortable: false,
 						focusable: false,
 						dropdown: false,
+					}, {
+						name: 'Commit message',
+						id: 'commit_msg',
+						editable: false,
+						resizable: false,
+						sortable: false,
+						focusable: false,
+						dropdown: false,
 					}],
 					data: tableData,
 					serialNoColumn: false,
 					checkboxColumn: true,
 					checkedRowStatus: false,
-					layout: 'ratio',
+					// layout: 'fixed',
 					events: {
 						onCheckRow(row) {
 							if (rowSelected.filter(e => e.rowIndex == row.meta.rowIndex).length > 0) {
@@ -217,7 +229,7 @@
 					serialNoColumn: false,
 					checkboxColumn: true,
 					checkedRowStatus: false,
-					layout: 'ratio',
+					// layout: 'fluid',
 				})
 				datatable.style.setStyle(`.dt-cell__content--header-0`, {
 					visibility: 'hidden',
@@ -231,7 +243,7 @@
 				})
 				$('.toast').toast({
 					animation: true,
-					delay: 2000
+					delay: 10000
 				});
 				$('.toast').toast('show');
 			})
