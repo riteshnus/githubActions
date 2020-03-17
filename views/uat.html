@@ -151,7 +151,7 @@
 
 		function fetchRuns() {
 			const service = document.getElementById('postrepo').value;
-			const pat = '';
+			const pat = document.getElementById('posttoken').value;;
 			console.log(service, pat)
 			const urls = [
 				`https://api.github.com/repos/iLex-Innovation-Lab/${service}/actions/workflows/cd-sit-deploy-${service}.yml/runs`,
