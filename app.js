@@ -6,11 +6,6 @@ var logger = require('morgan');
 var passport = require('passport');
 var GitHubStrategy = require('passport-github').Strategy;
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-var loginRouter = require('./routes/login');
-
-var accessToken = '';
 passport.use(new GitHubStrategy({
     clientID: 'facb2d696c68728e154b',
     clientSecret: 'bffe4c4fc4febb93ad0d95b4c2782fc532604e12',
@@ -35,7 +30,6 @@ var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
 
 app.use(logger('dev'));
 app.use(require('morgan')('combined'));
