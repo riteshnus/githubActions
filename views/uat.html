@@ -79,12 +79,14 @@
 									<option value="ilex-fe">iLex Frontend</option>
 									<option value="trade-services">iLex Trade Service</option>
 									<option value="analytics-service">iLex Analytics Service</option>
+									<option value="auth-service">iLex Auth Service</option>
 								</select>
 							</div>
 
 							<div class="mb-3">
 								<label for="token">Access Token</label>
-								<input type="text" class="form-control" id="posttoken" placeholder="Enter Github Access Token">
+								<input type="text" class="form-control" id="posttoken" placeholder="Enter Github Access Token" required>
+								<span class="d-none text-danger" id="access-token-err">Access Token is required</span>
 							</div>
 
 							<div class="mb-3">
@@ -150,6 +152,12 @@
 		let rowSelected = [];
 
 		function fetchRuns() {
+			if (!document.getElementById('posttoken').value) {
+				document.getElementById('access-token-err').classList.add('d-block');
+				return;
+			} else {
+				document.getElementById('access-token-err').classList.remove('d-block');
+			}
 			const service = document.getElementById('postrepo').value;
 			const pat = document.getElementById('posttoken').value;;
 			console.log(service, pat)
@@ -276,7 +284,8 @@
 				const filterArray = uatArr.filter(e => e.status == 'completed' && e.conclusion == 'success')
 				if (filterArray.length > 0) {
 					const uatDeployedTime = new Date(filterArray[0].created_at).getTime();
-					return sitArr.filter(ele => new Date(ele.created_at).getTime() > uatDeployedTime)
+					return sitArr.filter(ele => new Date(ele.created_at).getTime() >
+						uatDeployedTime).filter((v, i, a) => a.findIndex(t => (t.head_sha === v.head_sha)) === i)
 				} else {
 					return sitArr
 				}
@@ -313,9 +322,9 @@
 		function deploy() {
 			if (rowSelected.length > 1) {
 				$('#warning-modal').on('show.bs.modal', function (event) {
-				var modal = $(this)
-				modal.find('.modal-title').text('Warning')
-				modal.find('.modal-body').text('More than one commit selected')
+					var modal = $(this)
+					modal.find('.modal-title').text('Warning')
+					modal.find('.modal-body').text('More than one commit selected')
 				})
 				$('#warning-modal').modal('show')
 				return;
@@ -341,17 +350,17 @@
 			}).then((data) => {
 				console.log(data);
 				if (data === 204) {
-						$('#success-modal').on('show.bs.modal', function (event) {
+					$('#success-modal').on('show.bs.modal', function (event) {
 						var modal = $(this)
 						modal.find('.modal-title').text('Success')
 						modal.find('.modal-body').text('Deployment triggered. Monitor github actions.')
-						})
-						$('#success-modal').modal('show')
+					})
+					$('#success-modal').modal('show')
 				} else {
 					$('#warning-modal').on('show.bs.modal', function (event) {
-					var modal = $(this)
-					modal.find('.modal-title').text('Warning')
-					modal.find('.modal-body').text(`Failed to trigger deployment - ${data}`)
+						var modal = $(this)
+						modal.find('.modal-title').text('Warning')
+						modal.find('.modal-body').text(`Failed to trigger deployment - ${data}`)
 					})
 					$('#warning-modal').modal('show')
 				}
@@ -366,6 +375,7 @@
 			if (document.getElementById('repobtn').classList.contains('d-none')) {
 				document.getElementById('repobtn').classList.remove('d-none');
 			}
+			$("#datatable").empty();
 		}
 	</script>
 </body>
